@@ -111,12 +111,11 @@ void controlPeripheral(BLEDevice peripheral) {
   while (peripheral.connected()) {
     if (simpleKeyCharacteristic.valueUpdated()) {
       // yes, get the value, characteristic is 1 byte so use byte value
-      
       simpleKeyCharacteristic.readValue(RX_BUFFER, TX_BUFFER_SIZE);
-    Serial.println(RX_BUFFER);
-    
+      Serial.println(RX_BUFFER);
+      delay(5);
 
   }
-  Serial.println("- Peripheral device disconnected!");
+  
 }
 }
