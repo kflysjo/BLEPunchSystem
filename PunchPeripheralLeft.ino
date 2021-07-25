@@ -21,8 +21,8 @@ BLECharacteristic sensorCharacteristic(uuidOfTxChar,BLENotify, TX_BUFFER_SIZE, T
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial);  
-  delay(100);
+  //while (!Serial);  
+  delay(1000);
   initBLE();
   configureBLE();
 
