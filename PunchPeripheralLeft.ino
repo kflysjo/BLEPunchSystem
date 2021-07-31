@@ -1,21 +1,17 @@
 #include <Arduino.h>
 #include <ArduinoBLE.h>
 #include <Arduino_LSM9DS1.h>
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 const char* uuidOfTxServiceLH = "00002A3D-0000-1000-8000-00805f9b34fb";
 const char* uuidOfTxCharacteristicLH = "00012A3D-0000-1000-8000-00805f9b34fb";
 const char* nameOfPeripheral = "LeftPeripheral";
-
-char testData[256];
-String dataPayload = "";
-char catBuffer[64];
 const int TX_BUFFER_SIZE = 256;
-bool TX_BUFFER_FIXED_LENGTH = false;
 
+
+char testData[TX_BUFFER_SIZE];
+char catBuffer[64];
+bool TX_BUFFER_FIXED_LENGTH = false;
 const int sendInterval = 1000;
 
 BLEService sensorService(uuidOfTxServiceLH); 
