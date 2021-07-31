@@ -1,19 +1,18 @@
 #include <Arduino.h>
 #include <ArduinoBLE.h>
 
-const char* uuidOfTxService = "00002A3D-0000-1000-8000-00805f9b34fb";
-const char* uuidOfTxChar = "00012A3D-0000-1000-8000-00805f9b34fb";
+const char* uuidOfRxServiceLH = "00002A3D-0000-1000-8000-00805f9b34fb";
+const char* uuidOfRxCharacteristicLH = "00012A3D-0000-1000-8000-00805f9b34fb";
+
+const int RX_BUFFER_SIZE = 200;
+bool RX_BUFFER_FIXED_LENGTH = true;
+int succesful_rx_counter = 0;
 
 
+BLEService sensorService(uuidOfRxServiceLH); 
+BLECharacteristic sensorCharacteristic(uuidOfRxCharacteristicLH,BLENotify, RX_BUFFER_SIZE, RX_BUFFER_FIXED_LENGTH);
 
-
-const int TX_BUFFER_SIZE = 512;
-bool TX_BUFFER_FIXED_LENGTH = false;
-
-BLEService sensorService(uuidOfTxService); 
-BLECharacteristic sensorCharacteristic(uuidOfTxChar,BLENotify, TX_BUFFER_SIZE, TX_BUFFER_FIXED_LENGTH);
-
-char RX_BUFFER[TX_BUFFER_SIZE];
+char RX_BUFFER[RX_BUFFER_SIZE];
 
 void setup() {
   Serial.begin(115200);
@@ -36,84 +35,89 @@ void loop() {
 }
 
 void connectToPeripheral(){
-  BLEDevice peripheral;
+  BLEDevice peripheralLH;
 
-  Serial.println("- Discovering peripheral device...");
+  Serial.println("- Discovering peripheralLH device...");
 
   do
   {
-    BLE.scanForUuid(uuidOfTxService);
-    peripheral = BLE.available();
-  } while (!peripheral);
+    BLE.scanForUuid(uuidOfRxServiceLH);
+    peripheralLH = BLE.available();
+  } while (!peripheralLH);
 
-  if (peripheral) {
+  if (peripheralLH) {
     Serial.println("* Peripheral device found!");
     Serial.print("* Device MAC address: ");
-    Serial.println(peripheral.address());
+    Serial.println(peripheralLH.address());
     Serial.print("* Device name: ");
-    Serial.println(peripheral.localName());
+    Serial.println(peripheralLH.localName());
     Serial.print("* Advertised service UUID: ");
-    Serial.println(peripheral.advertisedServiceUuid());
+    Serial.println(peripheralLH.advertisedServiceUuid());
     Serial.println(" ");
     BLE.stopScan();
-    controlPeripheral(peripheral);
+    controlPeripheral(peripheralLH);
   }
 
 }
 
-void controlPeripheral(BLEDevice peripheral) {
-  Serial.println("- Connecting to peripheral device...");
-  if (peripheral.connect()) {
-    Serial.println("* Connected to peripheral device!");
+void controlPeripheral(BLEDevice peripheralLH) {
+  Serial.println("- Connecting to peripheralLH device...");
+  if (peripheralLH.connect()) {
+    Serial.println("* Connected to peripheralLH device!");
     Serial.println(" ");
   } 
     else {
-    Serial.println("* Connection to peripheral device failed!");
+    Serial.println("* Connection to peripheralLH device failed!");
     Serial.println(" ");
     return;
   }
-  Serial.println("- Discovering peripheral device attributes...");
+  Serial.println("- Discovering peripheralLH device attributes...");
 
 
-  if (peripheral.discoverAttributes()) {
+  if (peripheralLH.discoverAttributes()) {
     Serial.println("* Peripheral device attributes discovered!");
     Serial.println(" ");
 
   } else {
     Serial.println("* Peripheral device attributes discovery failed!");
     Serial.println(" ");
-    peripheral.disconnect();
+    peripheralLH.disconnect();
     return;
 
   }
 
-  BLECharacteristic simpleKeyCharacteristic = peripheral.characteristic(uuidOfTxChar);
+  BLECharacteristic simpleKeyCharacteristicLH = peripheralLH.characteristic(uuidOfRxCharacteristicLH);
 
-  // subscribe to the simple key characteristic
   Serial.println("Subscribing to simple key characteristic ...");
-  if (!simpleKeyCharacteristic) {
+  if (!simpleKeyCharacteristicLH) {
     Serial.println("no simple key characteristic found!");
-    peripheral.disconnect();
+    peripheralLH.disconnect();
     return;
   } 
-  else if (!simpleKeyCharacteristic.canSubscribe()) {
+  else if (!simpleKeyCharacteristicLH.canSubscribe()) {
     Serial.println("simple key characteristic is not subscribable!");
-    peripheral.disconnect();
+    peripheralLH.disconnect();
     return;
   } 
-  else if (!simpleKeyCharacteristic.subscribe()) {
+  else if (!simpleKeyCharacteristicLH.subscribe()) {
     Serial.println("subscription failed!");
-    peripheral.disconnect();
+    peripheralLH.disconnect();
     return;
   }
  
 
-  while (peripheral.connected()) {
-    if (simpleKeyCharacteristic.valueUpdated()) {
-      // yes, get the value, characteristic is 1 byte so use byte value
-      simpleKeyCharacteristic.readValue(RX_BUFFER, TX_BUFFER_SIZE);
-      Serial.println(RX_BUFFER);
-      delay(5);
+  while (peripheralLH.connected()) {
+    if (simpleKeyCharacteristicLH.valueUpdated()) {
+      simpleKeyCharacteristicLH.readValue(RX_BUFFER, RX_BUFFER_SIZE);
+      succesful_rx_counter++;
+      delayMicroseconds(50);
+
+    if (succesful_rx_counter % 10 == 0)
+    {
+      Serial.println(millis());
+      Serial.println(succesful_rx_counter);
+    }
+    
 
   }
   
